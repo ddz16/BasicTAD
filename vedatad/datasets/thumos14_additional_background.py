@@ -11,7 +11,9 @@ import cv2
 
 @registry.register_module('dataset')
 class Thumos14Dataset_additional_background(CustomDataset):
-    """Thumos14 dataset for temporal action detection."""
+    """Thumos14 dataset for temporal action detection.
+       相比于Thumos14Dataset，就是在CLASSES中加了一个背景类
+    """
 
     CLASSES = ('__background__','BaseballPitch', 'BasketballDunk', 'Billiards', 'CleanAndJerk',
                'CliffDiving', 'CricketBowling', 'CricketShot', 'Diving',
