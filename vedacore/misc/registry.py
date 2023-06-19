@@ -6,9 +6,22 @@ from .utils import is_str
 
 class Registry:
     """A registry to map strings to classes.
+    
+    这个注册器有两个层次，即两层字典。第一个层次是module_name，第二个层次是class_name。这在get函数中可以看出来。
+    比如module_name为dataset时，self._module_dict['dataset']还是一个字典，包含类名到类的映射，比如'Thumos'->Thumos类，'Activity'->Activity类。
+    
+    __new__方法实现了单例模式，保证只有一个Registry实例。
+    
+    __len__方法返回注册表中注册的类的数量。
+    
+    __contains__方法判断给定的key是否在注册表中。
+    
+    get方法根据给定的类名和模块名返回对应的类。
+    
+    _register_module方法将给定的类和模块名注册到注册表中。
+    
+    register_module方法是一个装饰器，用于将类注册到注册表中。
 
-    Args:
-        name (str): Registry name.
     """
     _instance = None
 
@@ -79,6 +92,12 @@ registry = Registry()
 
 
 def build_from_cfg(cfg, registry, module_name='module', default_args=None):
+    ''' 根据给定的配置字典从注册表中构建一个类的实例，类由cfg字典中的typename指定，类的初始化参数由cfg字典中其他键值对指定。它具有以下参数：
+        cfg：配置字典，必须包含键"typename"，指定要构建的类。
+        registry：注册表对象，用于查找类。
+        module_name：模块名，默认为"module"。
+        default_args：默认参数字典，用于设置类的默认参数。
+    '''
     if not isinstance(cfg, dict):
         raise TypeError(f'cfg must be a dict, but got {type(cfg)}')
     if 'typename' not in cfg:
@@ -94,17 +113,13 @@ def build_from_cfg(cfg, registry, module_name='module', default_args=None):
     args = cfg.copy()
     obj_type = args.pop('typename')
     if is_str(obj_type):
-        # if module_name=='dataset':
-        #     print("obj_type:",obj_type) #Thumos
-        #     print("module_name:",module_name) #dataset
-        #     assert 1==2
         obj_cls = registry.get(obj_type, module_name)
     else:
         raise TypeError(f'type must be a str, but got {type(obj_type)}')
 
     if default_args is not None:
-        for name, value in default_args.items():
-            args.setdefault(name, value)
+        for name, value in default_args.items():  # 遍历default_args字典中的键值对，并将键值对添加到args字典中。如果args字典中已经存在相同的键，则不会覆盖原有的值。
+            args.setdefault(name, value)  
     return obj_cls(**args)
 
 
@@ -126,6 +141,6 @@ def build_from_module(cfg, module, default_args=None):
         raise TypeError(f'type must be a str, but got {type(obj_type)}')
 
     if default_args is not None:
-        for name, value in default_args.items():
+        for name, value in default_args.items():  # 遍历default_args字典中的键值对，并将键值对添加到args字典中。如果args字典中已经存在相同的键，则不会覆盖原有的值。
             args.setdefault(name, value)
     return obj_cls(**args)
